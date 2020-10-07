@@ -6,7 +6,7 @@ package org.decaywood.entity;
  */
 public class User {
 
-    public static interface UserSetter {
+    public interface UserSetter {
         void setUser(User user);
         String getUserId();
     }

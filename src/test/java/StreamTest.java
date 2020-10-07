@@ -3,6 +3,7 @@ import org.decaywood.collector.*;
 import org.decaywood.entity.*;
 import org.decaywood.entity.trend.StockTrend;
 import org.decaywood.filter.PageKeyFilter;
+import org.decaywood.mapper.comment.CommentSetMapper;
 import org.decaywood.mapper.cubeFirst.CubeToCubeWithLastBalancingMapper;
 import org.decaywood.mapper.cubeFirst.CubeToCubeWithTrendMapper;
 import org.decaywood.mapper.dateFirst.DateToLongHuBangStockMapper;
@@ -217,6 +218,45 @@ public class StreamTest {
             System.out.println(info.getDate() + " -> " + info.getStock().getStockName());
         }
 
+    }
+
+    // 某只股票下的热帖过滤出大V评论
+    @Test
+    public void CommentReduce() {
+        List<Comment.CommentSetter> sh688180 = new StockCommentCollector("SH688180", StockCommentCollector.SortType.alpha, 1, 10)
+                .get()
+                .stream()
+                .map(new CommentSetMapper())
+                .collect(Collectors.toList());
+        for (Comment.CommentSetter postInfo : sh688180) {
+            PostInfo p = (PostInfo) postInfo;
+            for (Comment comment : p.getComments()) {
+                if (Integer.parseInt(comment.getUser().getFollowers_count()) > 10000) {
+                    System.out.println(comment.getText());
+                }
+            }
+        }
+    }
+
+    // 某只票帖子里大V参与的讨论
+    @Test
+    public void NewComment() {
+        for (int i = 0; i < 10; i++) {
+            List<Comment.CommentSetter> sh688180 = new StockCommentCollector("SH688180", StockCommentCollector.SortType.time, i+1, 10)
+                    .get()
+                    .stream()
+                    .map(new CommentSetMapper())
+                    .collect(Collectors.toList());
+            for (Comment.CommentSetter postInfo : sh688180) {
+                PostInfo p = (PostInfo) postInfo;
+                for (Comment comment : p.getComments()) {
+                    int followerCnt = Integer.parseInt(comment.getUser().getFollowers_count());
+                    if (followerCnt > 10000) {
+                        System.out.println(comment.getUser().getScreen_name() + "  " + followerCnt + "  " + comment.getText());
+                    }
+                }
+            }
+        }
     }
 
 }

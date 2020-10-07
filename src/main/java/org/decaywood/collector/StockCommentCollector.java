@@ -1,16 +1,13 @@
 package org.decaywood.collector;
 
 import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import org.decaywood.entity.Comment;
+import org.decaywood.entity.PostInfo;
 import org.decaywood.utils.JsonParser;
 import org.decaywood.utils.RequestParaBuilder;
 import org.decaywood.utils.StringUtils;
 import org.decaywood.utils.URLMapper;
-import org.springframework.beans.BeanUtils;
 
 import java.net.URL;
-import java.rmi.RemoteException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -19,18 +16,33 @@ import java.util.List;
  * @author decaywood (zyx@webull.com)
  * @date 2020/10/7 16:04
  */
-public class UserCommentCollector extends AbstractCollector<List<Comment>> {
+public class StockCommentCollector extends AbstractCollector<List<PostInfo>> {
+
+    public enum SortType {
+        // 最新时间
+        time,
+        // 热度排名
+        alpha
+    }
 
     private String symbol;
 
     private int pageSize;
 
-    public UserCommentCollector() {
+    private int page;
+
+    private String sort;
+
+    public StockCommentCollector(String symbol, SortType type, int page, int pageSize) {
         super(null);
+        this.symbol = symbol;
+        this.page = page;
+        this.pageSize = pageSize;
+        this.sort = type.toString();
     }
 
     @Override
-    protected List<Comment> collectLogic() throws Exception {
+    protected List<PostInfo> collectLogic() throws Exception {
         if (StringUtils.isNull(symbol) || pageSize <= 0) {
             throw new IllegalArgumentException("symbol is null or page size is zero");
         }
@@ -38,29 +50,17 @@ public class UserCommentCollector extends AbstractCollector<List<Comment>> {
         RequestParaBuilder builder = new RequestParaBuilder(target);
         builder.addParameter("count", pageSize);
         builder.addParameter("symbol", symbol);
+        builder.addParameter("sort", sort);
+        builder.addParameter("page", page);
         URL url = new URL(builder.build());
         String json = requestWithoutGzip(url);
         JsonNode node = mapper.readTree(json);
-        List<Comment> comments = new ArrayList<>();
+        List<PostInfo> postInfos = new ArrayList<>();
         for (JsonNode jsonNode : node.get("list")) {
-            Comment comment = JsonParser.parse(Comment::new, jsonNode);
-            comments.add(comment);
+            PostInfo postInfo = JsonParser.parse(PostInfo::new, jsonNode);
+            postInfos.add(postInfo);
         }
-        return comments;
+        return postInfos;
     }
 
-    /**
-     * 设置股票代码
-     * @param stockCode 例如君实生物 SH688180
-     * @return
-     */
-    public UserCommentCollector setSymbol(String stockCode) {
-        this.symbol = stockCode;
-        return this;
-    }
-
-    public UserCommentCollector setPageSize(int pageSize) {
-        this.pageSize = pageSize;
-        return this;
-    }
 }

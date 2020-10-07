@@ -1,29 +1,43 @@
 package org.decaywood.entity;
 
+import java.util.List;
+import java.util.Objects;
+
 /**
  * 评论模型
  * @author decaywood (zyx@webull.com)
- * @date 2020/10/7 16:56
+ * @date 2020/10/7 19:18
  */
 public class Comment implements User.UserSetter {
-    private String description;
-    private String text;
-    private String target;
-    private String title;
-    private String user_id;
+
+    public interface CommentSetter {
+        void addComments(List<Comment> comments);
+        String getPostId();
+        int getReplyCnt();
+    }
+
+    /** 评论id */
+    private String id;
+
+    /** 用户信息 */
     private User user;
 
-    @Override
-    public void setUser(User user) {
-        this.user = user;
+    /** 评论内容 */
+    private String text;
+
+    /** 用户id */
+    private String user_id;
+
+    public String getId() {
+        return id;
     }
 
-    public String getDescription() {
-        return description;
+    public void setId(String id) {
+        this.id = id;
     }
 
-    public void setDescription(String description) {
-        this.description = description;
+    public User getUser() {
+        return user;
     }
 
     public String getText() {
@@ -32,22 +46,6 @@ public class Comment implements User.UserSetter {
 
     public void setText(String text) {
         this.text = text;
-    }
-
-    public String getTarget() {
-        return target;
-    }
-
-    public void setTarget(String target) {
-        this.target = target;
-    }
-
-    public String getTitle() {
-        return title;
-    }
-
-    public void setTitle(String title) {
-        this.title = title;
     }
 
     public String getUser_id() {
@@ -59,11 +57,25 @@ public class Comment implements User.UserSetter {
     }
 
     @Override
-    public String getUserId() {
-        return this.user_id;
+    public void setUser(User user) {
+        this.user = user;
     }
 
-    public User getUser() {
-        return user;
+    @Override
+    public String getUserId() {
+        return user_id;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        Comment comment = (Comment) o;
+        return id.equals(comment.id);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(id);
     }
 }
